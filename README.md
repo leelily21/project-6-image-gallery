@@ -1,3 +1,89 @@
+# **МАҢЫЗДЫ: СТУДЕНТТЕРГЕ АРНАЛҒАН ТАПСЫРМАЛАР\!**
+
+Дағдыларды бекітуге арналған практикалық тапсырмалар. Қателерден қорықпа, бұл оқу процесінің бір бөлігі\!
+
+-----
+
+# **Жоба 6/10: Суреттер Галереясы**
+
+Клиенттен серверге файлдарды жүктеуді көрсететін қарапайым full-stack қосымшасы.
+
+-----
+
+**🚀 Технологиялар**
+
+  * **Бэкенд**: FastAPI (UploadFile, StaticFiles), aiofiles
+  * **Фронтенд**: Next.js (\<Image\>, FormData)
+
+**✨ Функционал**
+
+  * Суретті таңдау және жүктеуге арналған форма.
+  * Бэкенд файлдарды `/backend/static/images` қалтасында сақтайды.
+  * Бэкенд сақталған файлдарды статика ретінде таратады.
+  * Фронтендтегі галерея барлық жүктелген суреттерді көрсетеді.
+
+# **Сенің міндетің:**
+
+## Сенің тапсырмаң:
+
+# 1\. **Суреттерді жою:**
+
+>   * ## **Бэкенд**: Серверден файлды жоятын `DELETE /api/images/{filename}` эндпоинтін жаса.
+>   * ## **Фронтенд**: Галереядағы әр суретке "Жою" батырмасын (қоқыс жәшігінің белгішесін) қос. Басқан кезде жою сұрауын жібер және тізімді жаңарт.
+
+# 2\. **Сервердегі валидация:**
+
+>   * ## **Бэкенд**: `/api/upload` эндпоинтіндегі валидацияны жақсарт. Тек `image/*` түрін ғана емес, сонымен қатар файлдың максималды өлшемін (мысалы, 5 МБ-тан аспайтын) тексеруді қосыңыз.
+
+# 3\. **Жүктеу прогресінің индикаторы (күрделі):**
+
+>   * ## **Фронтенд**: Жүктеу прогресін бақылау үшін `axios` мүмкіндіктерін пайдалан (сұрау конфигурациясындағы `onUploadProgress` параметрі). Файл жүктелген кезде прогресс жолағын көрсет.
+
+-----
+
+# **IMPORTANT: TASKS FOR STUDENTS\!**
+
+These are practical assignments to consolidate your skills. Don't be afraid of mistakes; they are part of the learning process\!
+
+-----
+
+# **Project 6/10: Image Gallery**
+
+A simple full-stack application demonstrating file uploads from client to server.
+
+-----
+
+**🚀 Technologies**
+
+  * **Backend**: FastAPI (UploadFile, StaticFiles), aiofiles
+  * **Frontend**: Next.js (\<Image\>, FormData)
+
+**✨ Functionality**
+
+  * Form for selecting and uploading an image.
+  * Backend saves files to the `/backend/static/images` folder.
+  * Backend serves saved files as static assets.
+  * Frontend gallery displays all uploaded images.
+
+# **Your Task:**
+
+## Your Mission:
+
+# 1\. **Delete Images:**
+
+>   * ## **Backend**: Create a `DELETE /api/images/{filename}` endpoint that deletes the file from the server.
+>   * ## **Frontend**: Add a "Delete" button (trash can icon) to each image in the gallery. When clicked, send a delete request and refresh the list.
+
+# 2\. **Server-side Validation:**
+
+>   * ## **Backend**: Improve validation in the `/api/upload` endpoint. Add checks not only for `image/*` type, but also for maximum file size (e.g., no more than 5 MB).
+
+# 3\. **Upload Progress Indicator (Advanced):**
+
+>   * ## **Frontend**: Use `axios` capabilities to track upload progress (`onUploadProgress` parameter in request config). Display a progress bar during file upload.
+
+-----
+
 # **ВАЖНО: ЗАДАЧИ ДЛЯ СТУДЕНТОВ\!**
 
 Перед тобой практические задания для закрепления навыков. Не бойся ошибок, это часть обучения\!
