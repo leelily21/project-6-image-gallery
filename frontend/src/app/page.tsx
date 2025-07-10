@@ -1,24 +1,25 @@
 'use client';
 
-import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import { useEffect, useState, FormEvent } from 'react';
 import axios from 'axios';
 import Image from 'next/image';
+import { Trash2 } from 'lucide-react';
 
 const API_URL = 'http://localhost:8000';
 
-export default function Home() {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+export default function Gallery() {
   const [images, setImages] = useState<string[]>([]);
-  const [error, setError] = useState('');
+  const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+  const [progress, setProgress] = useState(0);
 
   const fetchImages = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/images`);
-      setImages(response.data);
+      const res = await axios.get(`${API_URL}/api/images`);
+      setImages(res.data);
     } catch (err) {
-      console.error('Failed to fetch images:', err);
-      setError('Не удалось загрузить галерею.');
+      console.error('Ошибка при получении изображений', err);
     }
   };
 
@@ -26,79 +27,102 @@ export default function Home() {
     fetchImages();
   }, []);
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
-    }
-  };
-
   const handleUpload = async (e: FormEvent) => {
     e.preventDefault();
-    if (!selectedFile) {
-      setError('Пожалуйста, выберите файл для загрузки.');
-      return;
-    }
+    if (!file) return;
 
     const formData = new FormData();
-    formData.append('file', selectedFile);
-
-    setUploading(true);
-    setError('');
+    formData.append('file', file);
 
     try {
+      setUploading(true);
+      setError('');
+      setProgress(0);
+
       await axios.post(`${API_URL}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (event) => {
+          const percent = Math.round((event.loaded * 100) / (event.total || 1));
+          setProgress(percent);
+        },
       });
-      // После успешной загрузки, обновляем галерею
-      fetchImages();
-      setSelectedFile(null); // Сбрасываем выбранный файл
+
+      setFile(null);
+      await fetchImages();
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Ошибка загрузки файла.');
+      setError(err.response?.data?.detail || 'Ошибка загрузки.');
     } finally {
       setUploading(false);
     }
   };
 
+  const handleDelete = async (url: string) => {
+    const filename = url.split('/').pop();
+    try {
+      await axios.delete(`${API_URL}/api/images/${filename}`);
+      setImages(images.filter(img => img !== url));
+    } catch (err) {
+      console.error('Ошибка удаления', err);
+    }
+  };
+
   return (
-    <main className="container mx-auto p-8">
-      <h1 className="text-4xl font-bold text-center mb-8">Галерея Изображений</h1>
+    <main className="min-h-screen bg-gray-100 p-8">
+      <div className="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow space-y-6">
+        <h1 className="text-3xl font-bold text-center text-gray-800">Галерея изображений</h1>
 
-      <form onSubmit={handleUpload} className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md mb-12">
-        <div className="mb-4">
-          <label htmlFor="file-upload" className="block text-gray-700 text-sm font-bold mb-2">
-            Выберите изображение:
-          </label>
-          <input 
-            id="file-upload"
-            type="file" 
-            onChange={handleFileChange}
+        <form onSubmit={handleUpload} className="space-y-4">
+          <input
+            type="file"
             accept="image/*"
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-blue-600 file:text-white file:rounded-lg hover:file:bg-blue-700"
           />
-        </div>
-        <button type="submit" disabled={!selectedFile || uploading} className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:bg-gray-400">
-          {uploading ? 'Загрузка...' : 'Загрузить'}
-        </button>
-        {error && <p className="text-red-500 text-xs italic mt-4">{error}</p>}
-      </form>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {images.map((imgUrl, index) => (
-          <div key={index} className="relative aspect-square rounded-lg overflow-hidden shadow-lg">
-            <Image
-              src={
-                imgUrl.startsWith('http://') || imgUrl.startsWith('https://')
-                  ? imgUrl
-                  : `${API_URL}${imgUrl.startsWith('/') ? '' : '/'}${imgUrl}`
-              }
-              alt={`Uploaded image ${index + 1}`}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              priority={index < 4} // Приоритет для первых нескольких изображений
-            />
+          {uploading && (
+            <div className="w-full bg-gray-200 rounded h-4 overflow-hidden">
+              <div
+                className="bg-blue-500 h-full transition-all"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          )}
+
+          {error && <p className="text-red-500">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={uploading || !file}
+            className="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition"
+          >
+            {uploading ? 'Загрузка...' : 'Загрузить'}
+          </button>
+        </form>
+
+        {images.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-6 border-t">
+            {images.map((url) => (
+              <div key={url} className="relative group">
+                <Image
+                  src={`${API_URL}${url}`}
+                  alt="uploaded"
+                  width={300}
+                  height={200}
+                  className="object-cover rounded-lg w-full h-48"
+                />
+                <button
+                  onClick={() => handleDelete(url)}
+                  className="absolute top-2 right-2 bg-white/80 hover:bg-white text-red-600 p-1 rounded-full transition-opacity opacity-0 group-hover:opacity-100"
+                  title="Удалить"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            ))}
           </div>
-        ))}
+        ) : (
+          <p className="text-center text-gray-500">Нет загруженных изображений.</p>
+        )}
       </div>
     </main>
   );

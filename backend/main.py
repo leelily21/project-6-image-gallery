@@ -26,6 +26,11 @@ async def upload_image(file: UploadFile = File(...)):
     # Проверка типа файла
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="Uploaded file is not an image.")
+    
+    content = await file.read()
+    max_size_mb = 5
+    if len(content) > max_size_mb * 1024*1024:
+        raise HTTPException(status_code=400, detail="Максимальный размер файла - 5MB.")
 
     # Проверка наличия имени файла
     if not file.filename:
@@ -37,14 +42,13 @@ async def upload_image(file: UploadFile = File(...)):
     file_path = os.path.join(IMAGE_DIR, unique_filename)
 
     # Асинхронно сохраняем файл
+    # Асинхронно сохраняем файл
     try:
-        from aiofiles.threadpool.binary import AsyncBufferedIOBase  # type: ignore
-        async with aiofiles.open(file_path, mode='wb') as out_file:  # type: ignore
-            out_file: AsyncBufferedIOBase
-            content = await file.read()
+        async with aiofiles.open(file_path, mode='wb') as out_file:
             await out_file.write(content)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error saving file: {e}")
+
 
     # Возвращаем URL, по которому доступен файл
     file_url = f"/static/images/{unique_filename}"
@@ -61,3 +65,11 @@ async def get_images():
         return image_urls
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading image directory: {e}")
+    
+@app.delete("/api/images/{filename}")
+async def delete_image(filename: str):
+    file_path = os.path.join("static/images", filename)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Файл не найден")
+    os.remove(file_path)
+    return {"message": "Файл удален. "}
